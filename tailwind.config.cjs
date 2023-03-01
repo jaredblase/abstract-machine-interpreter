@@ -4,6 +4,7 @@ module.exports = {
     "./index.html",
     "./src/**/*.{svelte,css}",
   ],
+	darkMode: 'class',
   theme: {
     extend: {},
   },

@@ -2,3 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+body {
+	@apply dark:text-white dark:bg-gray-800;
+}
+
+.icon {
+	@apply fill-gray-500 dark:hover:fill-gray-400 dark:active:fill-gray-300 transition-colors
+		 hover:fill-gray-600 active:fill-gray-700;
+}
