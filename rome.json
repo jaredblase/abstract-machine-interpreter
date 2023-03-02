@@ -1,0 +1,26 @@
+{
+	"$schema": "./node_modules/rome/configuration_schema.json",
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"recommended": true,
+			"style": {
+				"useShorthandArrayType": "error"
+			}
+		}
+	},
+	"formatter": {
+		"enabled": true,
+		"formatWithErrors": false,
+		"indentStyle": "tab",
+		"indentSize": 2,
+		"lineWidth": 80,
+		"ignore": ["src/absmac/index.*"]
+	},
+	"javascript": {
+		"formatter": {
+			"quoteStyle": "single",
+			"semicolons": "asNeeded"
+		}
+	}
+}
