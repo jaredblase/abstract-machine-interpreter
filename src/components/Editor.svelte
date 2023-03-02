@@ -9,11 +9,9 @@
   export { className as class }
 </script>
 
-<header class="bg-neutral-700 px-4 py-1">
-  <h2 class="font-medium text-sm">Abstract Machine Code Editor</h2>
-</header>
 <div class={className}>
   <CodeMirror
+    class="max-h-full"
     bind:value={$code}
     theme={[theme, highlights]}
     lang={AbsMac()}
