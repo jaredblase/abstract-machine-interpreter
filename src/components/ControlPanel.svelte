@@ -2,10 +2,11 @@
   import { interpret } from '../lib/interpreter'
   import type { AbstractMachine } from '../lib/interpreter/AbstractMachine'
   import { message, code } from '../stores/editor'
-  import { update } from '../stores/machine'
+  import { isHalted, update } from '../stores/machine'
 
   let machine: AbstractMachine
   let value = ''
+	let timeout: NodeJS.Timer
 
   $: {
     if (value || $code) {
@@ -15,6 +16,8 @@
       })
     }
   }
+
+	$: isRunning = timeout != null
 
   function onReset() {
     try {
@@ -36,18 +39,33 @@
   function onPause() {}
 
   function onStep() {
-    machine.step()
-    update(machine)
+		console.log('step')
+		if (!$isHalted) {
+			machine.step()
+    	update(machine)
+		} else if (timeout) {
+			clearTimeout(timeout)
+			timeout = null
+		}
   }
 
-  function onPlay() {}
+
+  function onPlay() {
+		if (timeout) {
+			clearInterval(timeout)
+			return timeout = null
+		}
+		
+		timeout = setInterval(onStep, 200)
+	}
 </script>
 
 <label for="input" class="block">Initial input</label>
 <input
   type="text"
   id="input"
-  class="text-gray-900 rounded-md py-1 w-full"
+  class="text-gray-900 rounded-md py-1 w-full placeholder:text-gray-400 placeholder:italic"
+	placeholder="Input value..."
   bind:value
 />
 <p class="text-sm font-semibold min-h-[3rem] mt-1 message {$message.type}">
@@ -55,12 +73,12 @@
 </p>
 <div class="grid gap-2 grid-cols-2 md:grid-cols-1">
   <button
-    class="btn bg-green-600 hover:bg-green-700 active:bg-green-800 text-white"
-    on:click={onPlay}>Play</button
+    class="btn bg-green-600 enabled:hover:bg-green-700 enabled:active:bg-green-800 text-white"
+		disabled={$isHalted}
+    on:click={onPlay}>{isRunning ? 'Pause' : 'Play'}</button
   >
-  <button class="btn default" on:click={onPause}>Pause</button>
-  <button class="btn default" on:click={onStep}>Step</button>
-  <button class="btn default" on:click={onReset}>Reset</button>
+  <button class="btn default" disabled={$isHalted || isRunning} on:click={onStep}>Step</button>
+  <button class="btn default" disabled={isRunning} on:click={onReset}>Reset</button>
 </div>
 
 <style lang="postcss">
@@ -77,10 +95,10 @@
   }
 
   .btn {
-    @apply flex-1 rounded-md py-1 transition-colors font-medium;
+    @apply flex-1 rounded-md py-1 transition-colors font-medium disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .default {
-    @apply bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-800;
+    @apply bg-gray-100 enabled:hover:bg-gray-200 enabled:active:bg-gray-300 text-gray-800;
   }
 </style>

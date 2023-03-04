@@ -1,5 +1,5 @@
 import { AbsMacLanguage } from '../absmac'
-import type { FSACommand, Memory, PDACommand, TMCommand, State, Command, MachineMemory, MachineTransitions } from '.'
+import type { FSACommand, Memory, PDACommand, TMCommand, MachineMemory, MachineTransitions } from '.'
 import { ContextCursor } from './ContextCursor'
 import { AbstractMachine } from './AbstractMachine'
 
