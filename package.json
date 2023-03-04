@@ -26,6 +26,7 @@
     "@lezer/common": "^1.0.0",
     "codemirror": "6.0.0",
     "rome": "^11.0.0",
-    "svelte-codemirror-editor": "^1.1.0"
+    "svelte-codemirror-editor": "^1.1.0",
+    "tailwindcss-global-dark": "^1.0.1"
   }
 }
