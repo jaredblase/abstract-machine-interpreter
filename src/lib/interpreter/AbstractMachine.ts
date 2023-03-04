@@ -1,4 +1,4 @@
-import type { MachineMemory, MachineTransitions, State,FSACommand } from '.'
+import type { MachineMemory, MachineTransitions, State,FSACommand, PDACommand } from '.'
 import { isFSACommand, isPDACommand } from '.'
 
 export class AbstractMachine {
@@ -7,7 +7,7 @@ export class AbstractMachine {
 	#currState: State
 	#initState: State
 	#steps = 0
-	#ptr = -1
+	#ptr = 0
 	#input: string
 	#output: string
 
@@ -20,8 +20,8 @@ export class AbstractMachine {
 	reset(input: string) {
 		if (!input) throw Error('Input cannot be empty!')
 
-		this.#input = input
-		this.#ptr = -1
+		this.#input = `#${input}#`
+		this.#ptr = 0
 		this.#output = ''
 		this.#steps = 0
 		this.#currState = this.#initState
@@ -48,7 +48,7 @@ export class AbstractMachine {
 		if (isFSACommand(t)) {
 			this.#FSAStep(t)
 		} else if (isPDACommand(t)) {
-			this.#PDAStep()
+			this.#PDAStep(t)
 		} else {
 			this.#TMStep()
 		}
@@ -79,8 +79,23 @@ export class AbstractMachine {
 		this.#currState = command.to.find(c => c.symbol === symbol).destination
 	}
 
-	#PDAStep() {
+	#PDAStep(command: PDACommand) {
+		const m = this.#memory.get(command.memoryName)
 
+		if (command.type === 'WRITE') {
+			m.data.push(command.to[0].symbol)
+			return this.#currState = command.to[0].destination
+		}
+
+		if (m.type === 'QUEUE') {
+			if (m.data.shift() !== command.to[0].symbol) {
+				this.#currState = 'rejected'
+			}
+		} else if (m.data.pop() !== command.to[0].symbol) {
+			this.#currState = 'rejected'
+		}
+
+		this.#currState = command.to[0].destination
 	}
 
 	#TMStep() {
