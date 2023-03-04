@@ -1,5 +1,7 @@
 export * from './interpreter'
 
+export type InterpreterState = 'RUNNING' | 'PAUSED' | 'INITIALIZED' | 'STEPPING'
+
 export type Memory = {
 	type: 'STACK' | 'QUEUE' | 'TAPE'
 	data: string[]
