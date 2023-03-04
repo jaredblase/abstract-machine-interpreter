@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 body {
-	@apply dark:text-white dark:bg-gray-800;
+	@apply dark:text-white dark:bg-gray-800 transition-colors;
 }
 
 .icon {
