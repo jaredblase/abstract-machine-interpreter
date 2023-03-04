@@ -1,11 +1,11 @@
 import { AbsMacLanguage } from '../absmac'
-import { memory, transitions } from '../../stores/runtime'
-import type { FSACommand, Memory, PDACommand, TMCommand } from '.'
+import type { FSACommand, Memory, PDACommand, TMCommand, State, Command, MachineMemory, MachineTransitions } from '.'
 import { ContextCursor } from './ContextCursor'
+import { AbstractMachine } from './AbstractMachine'
 
 export function interpret(src: string) {
-	memory.clear()
-	transitions.clear()
+	const memory: MachineMemory = new Map()
+	const transitions: MachineTransitions = new Map()
 
 	const cursor = new ContextCursor(AbsMacLanguage.parser.parse(src).cursor(), src)
 	cursor.next()
@@ -25,7 +25,7 @@ export function interpret(src: string) {
 				throw SyntaxError(`Expected Identifier token after '${type}' at ${cursor.getRowColPos()}`)
 			}
 
-			memory.add(cursor.getToken(), type)
+			memory.set(cursor.getToken(), { type, data: [] })
 
 		} while (cursor.next() && !cursor.isType('LogicSection'))
 	}
@@ -67,7 +67,7 @@ export function interpret(src: string) {
 				cursor.next()
 			}
 
-			transitions.add(start, { type, to })
+			transitions.set(start, { type, to })
 			continue
 		}
 
@@ -80,13 +80,13 @@ export function interpret(src: string) {
 			}
 
 			const memoryName = cursor.getToken() as PDACommand['memoryName']
-			
+
 			if (cursor.next() && !cursor.isType('State')) {
 				throw SyntaxError(`Expected at least 1 State in Transition at ${cursor.getRowColPos()}`)
 			}
 
 			const to = [] as PDACommand['to']
-			
+
 			while (cursor.isType('State')) {
 				if (cursor.next() && !cursor.isType('Symbol')) {
 					throw SyntaxError(`Expected symbol at ${cursor.getRowColPos()}`)
@@ -102,7 +102,7 @@ export function interpret(src: string) {
 				cursor.next()
 			}
 
-			transitions.add(start, { type, memoryName, to })
+			transitions.set(start, { type, memoryName, to })
 			continue
 		}
 
@@ -114,11 +114,11 @@ export function interpret(src: string) {
 		}
 
 		const memoryName = cursor.getToken() as TMCommand['memoryName']
-		
+
 		if (cursor.next() && !cursor.isType('TapeState')) {
 			throw SyntaxError(`Expected at least 1 TapeState in Transition at ${cursor.getRowColPos()}`)
 		}
-		
+
 		const to = [] as TMCommand['to']
 
 		while (cursor.isType('TapeState')) {
@@ -142,6 +142,8 @@ export function interpret(src: string) {
 			cursor.next()
 		}
 
-		transitions.add(start, { type, memoryName, to })
+		transitions.set(start, { type, memoryName, to })
 	}
+
+	return new AbstractMachine(memory, transitions)
 }

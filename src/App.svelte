@@ -1,27 +1,32 @@
 <script lang="ts">
-  import InfoIcon from './assets/info.svelte'
+  import ControlPanel from './components/ControlPanel.svelte'
   import Editor from './components/Editor.svelte'
+  import Header from './components/Header.svelte'
+  import MachineStates from './components/MachineStates.svelte'
 </script>
 
-<header class="dark:text-white">
-  <div
-    class="container mx-auto py-4 flex sm:justify-between justify-center px-4 relative"
-  >
-    <h1 class="text-3xl font-mono select-none">Abstract</h1>
-    <InfoIcon
-      class="w-7 cursor-pointer icon absolute right-4 top-1/2 -translate-y-1/2 sm:static sm:translate-y-0"
-    />
-  </div>
-</header>
-<main>
-  <section>
-    <div class="grid grid-cols-2 container mx-auto px-4 h-96">
-      <div class="rounded-lg overflow-hidden flex flex-col">
+<Header />
+<main class="mt-8">
+  <MachineStates />
+  <section class="px-4">
+    <div
+      class="grid md:grid-cols-4 md:gap-x-4 lg:gap-x-6 gap-y-4 container lg:max-w-screen-lg mx-auto"
+    >
+      <div class="flex flex-col md:col-span-3">
         <header class="bg-neutral-700 px-4 py-1">
-          <h2 class="font-medium text-sm text-gray-200">Abstract Machine Code Editor</h2>
+          <h2 class="font-medium text-sm text-gray-200">
+            Abstract Machine Code Editor
+          </h2>
         </header>
-        <Editor class="bg-[#1e1e1e] flex-1 overflow-y-auto scrollbar scrollbar-thumb-[#ffffff30] scrollbar-track-transparent" />
+        <Editor
+          class="bg-[#1e1e1e] cursor-text overflow-y-auto h-[15rem] lg:h-[20rem] min-h-max
+					scrollbar scrollbar-thumb-[#ffffff30] scrollbar-track-transparent"
+        />
+      </div>
+      <div class="self-end">
+        <ControlPanel />
       </div>
     </div>
   </section>
 </main>
+<footer class="h-20" />
