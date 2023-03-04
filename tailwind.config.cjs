@@ -10,6 +10,7 @@ module.exports = {
 	},
 	plugins: [
 		require('tailwind-scrollbar'),
-		require('tailwindcss-global-dark')
+		require('tailwindcss-global-dark'),
+		require('@tailwindcss/forms')
 	],
 }
