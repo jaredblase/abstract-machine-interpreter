@@ -5,7 +5,7 @@
   import { isHalted, timelines, update, acceptedIdx } from '../stores/machine'
 
   let machine: AbstractMachine
-  let value = ''
+  let value = '1000101'
   let timeout: NodeJS.Timer
   let idx = 0
 
