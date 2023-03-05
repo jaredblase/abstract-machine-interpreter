@@ -62,7 +62,7 @@ export class AbstractMachine {
 
 		for (let i = this.#timelines.length - 1; i >= 0; i--) {
 			if (this.#timelines[i].isAccepted) {
-				this.#acceptTimeline.idx = this.#id
+				this.#acceptTimeline.idx = this.#timelines[i].#id
 				break
 			}
 		}
