@@ -18,6 +18,10 @@ export class ContextCursor {
 		return this.#hasRemainingNodes
 	}
 
+	isError() {
+		return this.#cursor.node.type.name === '⚠'
+	}
+
 	isType(type: string) {
 		return this.#cursor.node.type.name === type
 	}

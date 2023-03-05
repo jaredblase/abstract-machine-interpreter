@@ -1,20 +1,20 @@
-import type { MachineMemory, MachineTransitions, State,FSACommand, PDACommand } from '.'
-import { isFSACommand, isPDACommand } from '.'
+import type { Storage, States, State,FSAState, PDAState } from '.'
+import { isFSAState, isPDAState } from '.'
 
 export class AbstractMachine {
-	#memory: MachineMemory
-	#transitions: MachineTransitions
-	#currState: State
-	#initState: State
+	#storage: Storage
+	#states: States
+	#currState: string
+	#initState: string
 	#steps = 0
 	#ptr = 0
 	#input: string
 	#output: string
 
-	constructor(memory: MachineMemory, transitions: MachineTransitions) {
-		this.#memory = memory
-		this.#transitions = transitions
-		this.#initState = transitions.keys().next().value
+	constructor(storage: Storage, states: States) {
+		this.#storage = storage
+		this.#states = states
+		this.#initState = states.keys().next().value
 	}
 
 	reset(input: string) {
@@ -27,7 +27,7 @@ export class AbstractMachine {
 		this.#currState = this.#initState
 
 		// clear memory
-		for (const { data } of this.#memory.values()) {
+		for (const { data } of this.#storage.values()) {
 			data.length = 0
 		}
 	}
@@ -43,11 +43,11 @@ export class AbstractMachine {
 
 		if (this.isHalted) return
 
-		const t = this.#transitions.get(this.#currState)
+		const t = this.#states.get(this.#currState)
 		
-		if (isFSACommand(t)) {
+		if (isFSAState(t)) {
 			this.#FSAStep(t)
-		} else if (isPDACommand(t)) {
+		} else if (isPDAState(t)) {
 			this.#PDAStep(t)
 		} else {
 			this.#TMStep()
@@ -56,16 +56,16 @@ export class AbstractMachine {
 		this.#steps++
 	}
 
-	#FSAStep(command: FSACommand) {
+	#FSAStep(command: FSAState) {
 		let symbol: string
 
-		if (command.type === 'PRINT') {
-			this.#output += command.to[0].symbol
-			this.#currState = command.to[0].destination
+		if (command.command === 'PRINT') {
+			this.#output += command.transitions[0].symbol
+			this.#currState = command.transitions[0].destination
 			return
 		}
 
-		switch (command.type) {
+		switch (command.command) {
 			case 'SCAN':
 			case 'SCAN RIGHT':
 				symbol = this.#input[++this.#ptr]
@@ -76,26 +76,26 @@ export class AbstractMachine {
 				break
 		}
 
-		this.#currState = command.to.find(c => c.symbol === symbol).destination
+		this.#currState = command.transitions.find(c => c.symbol === symbol).destination
 	}
 
-	#PDAStep(command: PDACommand) {
-		const m = this.#memory.get(command.memoryName)
+	#PDAStep(command: PDAState) {
+		const m = this.#storage.get(command.memoryName)
 
-		if (command.type === 'WRITE') {
-			m.data.push(command.to[0].symbol)
-			return this.#currState = command.to[0].destination
+		if (command.command === 'WRITE') {
+			m.data.push(command.transitions[0].symbol)
+			return this.#currState = command.transitions[0].destination
 		}
 
 		if (m.type === 'QUEUE') {
-			if (m.data.shift() !== command.to[0].symbol) {
+			if (m.data.shift() !== command.transitions[0].symbol) {
 				this.#currState = 'rejected'
 			}
-		} else if (m.data.pop() !== command.to[0].symbol) {
+		} else if (m.data.pop() !== command.transitions[0].symbol) {
 			this.#currState = 'rejected'
 		}
 
-		this.#currState = command.to[0].destination
+		this.#currState = command.transitions[0].destination
 	}
 
 	#TMStep() {
@@ -123,7 +123,7 @@ export class AbstractMachine {
 	}
 
 	getMemory() {
-		return this.#memory
+		return this.#storage
 	}
 
 	get isHalted() {

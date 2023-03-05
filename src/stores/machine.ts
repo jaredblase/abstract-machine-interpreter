@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store'
-import type { MachineMemory } from '../lib/interpreter'
+import type { Storage } from '../lib/interpreter'
 import type { AbstractMachine } from '../lib/interpreter/AbstractMachine'
 
 export let input = writable('')
@@ -7,7 +7,7 @@ export let currState = writable('')
 export let steps = writable(0)
 export let idx = writable(0)
 export let output = writable('')
-export let memory = writable<MachineMemory>(new Map())
+export let memory = writable<Storage>(new Map())
 export let isHalted = writable(true)
 
 export function update(m: AbstractMachine) {
