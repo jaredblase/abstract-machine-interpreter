@@ -1,12 +1,13 @@
 <script lang="ts">
-  import { interpret } from '../lib/interpreter'
+  import { interpret, logTree } from '../lib/interpreter'
   import type { AbstractMachine } from '../lib/interpreter/AbstractMachine'
   import { message, code } from '../stores/editor'
-  import { isHalted, update } from '../stores/machine'
+  import { isHalted, timelines, update } from '../stores/machine'
 
   let machine: AbstractMachine
   let value = ''
-	let timeout: NodeJS.Timer
+  let timeout: NodeJS.Timer
+  let idx = 0
 
   $: {
     if (value || $code) {
@@ -17,8 +18,11 @@
     }
   }
 
-	$: isRunning = timeout != null
+  $: if ($timelines[idx]) {
+    update($timelines[idx])
+  }
 
+  $: isRunning = timeout != null
   function onReset() {
     try {
       machine = interpret($code)
@@ -36,49 +40,70 @@
     }
   }
 
-  function onPause() {}
-
   function onStep() {
-		console.log('step')
-		if (!$isHalted) {
-			machine.step()
-    	update(machine)
-		} else if (timeout) {
-			clearTimeout(timeout)
-			timeout = null
-		}
+    console.log('step')
+    if (!$isHalted) {
+      machine.step()
+      update(machine)
+    } else if (timeout) {
+      clearTimeout(timeout)
+      timeout = null
+    }
   }
 
-
   function onPlay() {
-		if (timeout) {
-			clearInterval(timeout)
-			return timeout = null
-		}
-		
-		timeout = setInterval(onStep, 200)
-	}
+    if (timeout) {
+      clearInterval(timeout)
+      return (timeout = null)
+    }
+
+    timeout = setInterval(onStep, 200)
+  }
 </script>
 
-<label for="input" class="block">Initial input</label>
-<input
-  type="text"
-  id="input"
-  class="text-gray-900 rounded-md py-1 w-full placeholder:text-gray-400 placeholder:italic"
-	placeholder="Input value..."
-  bind:value
-/>
+<div>
+  <label for="input" class="block">Initial input</label>
+  <input
+    type="text"
+    id="input"
+    class="text-gray-900 rounded-md py-1 w-full placeholder:text-gray-400 placeholder:italic"
+    placeholder="Input value..."
+    bind:value
+  />
+</div>
+<div class="mt-2">
+  <label for="timeline" class="block">Timeline</label>
+  <select
+    id="timeline"
+    bind:value={idx}
+    disabled={$timelines.length == 0 || isRunning}
+    class="rounded-md py-1 w-full text-gray-900"
+  >
+    {#each $timelines as t (t.id)}
+      <option value={t.id}>
+        {t.id}
+        {#if t.isHalted}({t.isAccepted ? 'accepted' : 'dead'}){/if}
+      </option>
+    {/each}
+  </select>
+</div>
 <p class="text-sm font-semibold min-h-[3rem] mt-1 message {$message.type}">
   {$message.text}
 </p>
-<div class="grid gap-2 grid-cols-2 md:grid-cols-1">
+<div class="grid gap-2 max-md:grid-cols-2">
   <button
     class="btn bg-green-600 enabled:hover:bg-green-700 enabled:active:bg-green-800 text-white"
-		disabled={$isHalted}
+    disabled={$isHalted}
     on:click={onPlay}>{isRunning ? 'Pause' : 'Play'}</button
   >
-  <button class="btn default" disabled={$isHalted || isRunning} on:click={onStep}>Step</button>
-  <button class="btn default" disabled={isRunning} on:click={onReset}>Reset</button>
+  <button
+    class="btn default"
+    disabled={$isHalted || isRunning}
+    on:click={onStep}>Step</button
+  >
+  <button class="btn default max-md:col-span-2" disabled={isRunning} on:click={onReset}>
+    Reset
+  </button>
 </div>
 
 <style lang="postcss">
@@ -94,8 +119,12 @@
     @apply text-red-500;
   }
 
+  :disabled {
+    @apply cursor-not-allowed opacity-50;
+  }
+
   .btn {
-    @apply flex-1 rounded-md py-1 transition-colors font-medium disabled:cursor-not-allowed disabled:opacity-50;
+    @apply flex-1 rounded-md py-1 transition-colors font-medium;
   }
 
   .default {

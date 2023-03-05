@@ -1,30 +1,51 @@
-import type { Storage, States, State,FSAState, PDAState } from '.'
+import type { Storage, States, Transition, FSAState, PDAState, TMState } from '.'
 import { isFSAState, isPDAState } from '.'
 
+type AcceptTimeline = {
+	idx?: number
+}
+
+
+/**
+ * Implementation of a non-deterministic abstract machine holding its own set of timelines
+ */
 export class AbstractMachine {
+	#id: number
 	#storage: Storage
 	#states: States
 	#currState: string
-	#initState: string
 	#steps = 0
 	#ptr = 0
 	#input: string
 	#output: string
+	#timelines: AbstractMachine[]
+	#acceptTimeline: AcceptTimeline
 
-	constructor(storage: Storage, states: States) {
+	constructor(storage: Storage, states: States, id?: number, currState?: string, steps?: number,
+		ptr?: number, input?: string, output?: string, timelines?: AbstractMachine[], acceptTimeline?: AcceptTimeline) {
 		this.#storage = storage
 		this.#states = states
-		this.#initState = states.keys().next().value
+		this.#id = id ?? 0
+
+		if (currState) {
+			this.#currState = currState
+			this.#steps = steps
+			this.#ptr = ptr
+			this.#input = input
+			this.#output = output
+			this.#timelines = timelines
+			this.#acceptTimeline = acceptTimeline
+		}
 	}
 
 	reset(input: string) {
-		if (!input) throw Error('Input cannot be empty!')
-
 		this.#input = `#${input}#`
 		this.#ptr = 0
 		this.#output = ''
 		this.#steps = 0
-		this.#currState = this.#initState
+		this.#currState = this.#states.keys().next().value
+		this.#timelines = [this]
+		this.#acceptTimeline = {}
 
 		// clear memory
 		for (const { data } of this.#storage.values()) {
@@ -33,39 +54,67 @@ export class AbstractMachine {
 	}
 
 	step() {
-		if (this.#currState === undefined) {
-			throw Error('Machine was not initialized!')
+		if (!this.isGlobalHalt) {
+			for (let i = this.#timelines.length - 1; i >= 0; i--) {
+				this.#timelines[i].run()
+			}
 		}
 
+		for (let i = this.#timelines.length - 1; i >= 0; i--) {
+			if (this.#timelines[i].isAccepted) {
+				this.#acceptTimeline.idx = this.#id
+				break
+			}
+		}
+	}
+
+	run() {
 		if (this.#ptr + 1 > this.#input.length) {
 			this.#currState = 'reject'
 		}
 
 		if (this.isHalted) return
 
-		const t = this.#states.get(this.#currState)
-		
-		if (isFSAState(t)) {
-			this.#FSAStep(t)
-		} else if (isPDAState(t)) {
-			this.#PDAStep(t)
+		const s = this.#states.get(this.#currState)
+		let test: (t: Transition) => boolean
+
+		if (isFSAState(s)) {
+			test = this.#FSAStep(s)
+		} else if (isPDAState(s)) {
+			this.#PDAStep(s)
 		} else {
-			this.#TMStep()
+			test = this.#TMStep()
 		}
 
 		this.#steps++
+		const transitions = s.transitions.filter(test)
+
+		// no valid transitions
+		if (transitions.length === 0) {
+			this.#currState = 'reject'
+		} else {
+			// current machine takes first possible transition
+			this.#currState = transitions[0].destination
+
+			// create another machine for the rest of the transitions
+			for (let i = 1; i < transitions.length; i++) {
+				this.#timelines.push(
+					new AbstractMachine(structuredClone(this.#storage), this.#states, this.#timelines.length, transitions[i].destination,
+						this.#steps, this.#ptr, this.#input, this.#output, this.#timelines, this.#acceptTimeline)
+				)
+			}
+		}
 	}
 
-	#FSAStep(command: FSAState) {
+	#FSAStep(s: FSAState) {
 		let symbol: string
 
-		if (command.command === 'PRINT') {
-			this.#output += command.transitions[0].symbol
-			this.#currState = command.transitions[0].destination
-			return
+		if (s.command === 'PRINT') {
+			this.#output += s.transitions[0].symbol
+			return () => true
 		}
 
-		switch (command.command) {
+		switch (s.command) {
 			case 'SCAN':
 			case 'SCAN RIGHT':
 				symbol = this.#input[++this.#ptr]
@@ -76,53 +125,53 @@ export class AbstractMachine {
 				break
 		}
 
-		this.#currState = command.transitions.find(c => c.symbol === symbol).destination
+		return (t: Transition) => t.symbol === symbol
 	}
 
-	#PDAStep(command: PDAState) {
-		const m = this.#storage.get(command.memoryName)
+	#PDAStep(s: PDAState) {
+		const m = this.#storage.get(s.memoryName)
 
-		if (command.command === 'WRITE') {
-			m.data.push(command.transitions[0].symbol)
-			return this.#currState = command.transitions[0].destination
+		if (s.command === 'WRITE') {
+			m.data.push(s.transitions[0].symbol)
+			return this.#currState = s.transitions[0].destination
 		}
 
 		if (m.type === 'QUEUE') {
-			if (m.data.shift() !== command.transitions[0].symbol) {
+			if (m.data.shift() !== s.transitions[0].symbol) {
 				this.#currState = 'rejected'
 			}
-		} else if (m.data.pop() !== command.transitions[0].symbol) {
+		} else if (m.data.pop() !== s.transitions[0].symbol) {
 			this.#currState = 'rejected'
 		}
 
-		this.#currState = command.transitions[0].destination
+		this.#currState = s.transitions[0].destination
 	}
 
 	#TMStep() {
-
+		return (t: Transition) => true
 	}
 
-	getCurrState() {
+	get currState() {
 		return this.#currState
 	}
 
-	getSteps() {
+	get steps() {
 		return this.#steps
 	}
 
-	getPointer() {
+	get pointer() {
 		return this.#ptr
 	}
 
-	getInput() {
+	get input() {
 		return this.#input
 	}
 
-	getOutput() {
+	get output() {
 		return this.#output
 	}
 
-	getMemory() {
+	get storage() {
 		return this.#storage
 	}
 
@@ -130,7 +179,27 @@ export class AbstractMachine {
 		return this.#currState === 'accept' || this.#currState === 'reject'
 	}
 
+	get isGlobalHalt() {
+		if (this.#acceptTimeline.idx !== undefined) {
+			return true
+		}
+
+		return this.#timelines.find(t => t.#currState !== 'reject') === undefined
+	}
+
 	get isAccepted() {
 		return this.#currState === 'accept'
+	}
+
+	get timelines() {
+		return this.#timelines
+	}
+
+	get id() {
+		return this.#id
+	}
+
+	get acceptedTimeline() {
+		return this.#acceptTimeline.idx
 	}
 }
