@@ -10,7 +10,7 @@
   <span class:mark={isMarked}>
     {char}
     {#if isMarked}
-      <Caret class="dark:fill-white w-3 absolute -bottom-3 left-[2px]" />
+      <Caret class="dark:fill-white w-3 absolute -bottom-3 md:left-[2px]" />
     {/if}
   </span>
 {:else}

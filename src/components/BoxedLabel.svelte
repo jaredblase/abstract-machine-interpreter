@@ -11,7 +11,7 @@
   >
     {label}
   </header>
-  <p class="text-3xl font-mono flex justify-center">
+  <p class="text-lg md:text-3xl font-mono flex justify-center flex-wrap overflow-hidden break-before-all px-2">
     <slot />
   </p>
 </div>

@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { interpret, logTree } from '../lib/interpreter'
+  import { interpret } from '../lib/interpreter'
   import type { AbstractMachine } from '../lib/interpreter/AbstractMachine'
   import { message, code } from '../stores/editor'
-  import { isHalted, timelines, update } from '../stores/machine'
+  import { isHalted, timelines, update, acceptedIdx } from '../stores/machine'
 
   let machine: AbstractMachine
   let value = ''
@@ -17,6 +17,14 @@
       })
     }
   }
+
+	$: if ($acceptedIdx != undefined) {
+		message.set({
+			type: 'info',
+			text: `Accepted timeline at ${$acceptedIdx}`
+		})
+		idx = $acceptedIdx
+	}
 
   $: if ($timelines[idx]) {
     update($timelines[idx])
@@ -41,7 +49,6 @@
   }
 
   function onStep() {
-    console.log('step')
     if (!$isHalted) {
       machine.step()
       update(machine)

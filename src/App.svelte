@@ -19,7 +19,7 @@
           </h2>
         </header>
         <Editor
-          class="bg-[#1e1e1e] cursor-text overflow-y-auto h-[15rem] lg:h-[20rem] min-h-max
+          class="bg-[#1e1e1e] cursor-text overflow-y-auto h-[18rem] lg:h-[20rem] min-h-max
 					scrollbar scrollbar-thumb-[#ffffff30] scrollbar-track-transparent"
         />
       </div>
