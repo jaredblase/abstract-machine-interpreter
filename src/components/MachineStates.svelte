@@ -29,6 +29,6 @@
 
 <style lang="postcss">
   p {
-    @apply text-lg md:text-3xl font-mono flex justify-center flex-wrap overflow-hidden break-before-all px-2
+    @apply text-lg md:text-3xl font-mono flex justify-center flex-wrap break-before-all px-2
   }
 </style>
