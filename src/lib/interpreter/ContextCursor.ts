@@ -12,7 +12,8 @@ export class ContextCursor {
 
 	next() {
 		if (this.#hasRemainingNodes) {
-			this.#hasRemainingNodes = this.#cursor.next()
+			// skip over comments
+			while ((this.#hasRemainingNodes = this.#cursor.next()) && this.#cursor.node.type.name === 'LineComment');
 		}
 		
 		return this.#hasRemainingNodes

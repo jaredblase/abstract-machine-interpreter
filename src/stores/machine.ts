@@ -10,6 +10,7 @@ export let output = writable('')
 export let memory = writable<Storage>(new Map())
 export let isHalted = writable(true)
 export let timelines = writable<AbstractMachine[]>([])
+export let acceptedIdx = writable<number | undefined>()
 
 export function update(m: AbstractMachine) {
 	input.set(m.input)
@@ -18,6 +19,7 @@ export function update(m: AbstractMachine) {
 	idx.set(m.pointer)
 	output.set(m.output)
 	memory.set(m.storage)
-	isHalted.set(m.isHalted || m.isGlobalHalt)
+	isHalted.set(m.isHalted || m.acceptedTimeline !== undefined)
 	timelines.set(m.timelines)
+	acceptedIdx.set(m.acceptedTimeline)
 }
