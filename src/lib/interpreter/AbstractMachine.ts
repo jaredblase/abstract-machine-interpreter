@@ -1,4 +1,4 @@
-import type { Storage, States, Transition, FSAState, PDAState, TMState } from '.'
+import type { Storage, States, Transition, FSAState, PDAState, TMState, _symbol } from '.'
 import { isFSAState, isPDAState } from '.'
 
 type AcceptTimeline = {
@@ -81,7 +81,7 @@ export class AbstractMachine {
 		if (isFSAState(s)) {
 			test = this.#FSAStep(s)
 		} else if (isPDAState(s)) {
-			this.#PDAStep(s)
+			test = this.#PDAStep(s)
 		} else {
 			test = this.#TMStep()
 		}
@@ -133,18 +133,12 @@ export class AbstractMachine {
 
 		if (s.command === 'WRITE') {
 			m.data.push(s.transitions[0].symbol)
-			return this.#currState = s.transitions[0].destination
+			return () => true
 		}
 
-		if (m.type === 'QUEUE') {
-			if (m.data.shift() !== s.transitions[0].symbol) {
-				this.#currState = 'rejected'
-			}
-		} else if (m.data.pop() !== s.transitions[0].symbol) {
-			this.#currState = 'rejected'
-		}
-
-		this.#currState = s.transitions[0].destination
+		// read
+		let symbol: _symbol = m.type === 'QUEUE' ? m.data.shift() : m.data.pop()
+		return (t: Transition) => t.symbol === symbol
 	}
 
 	#TMStep() {

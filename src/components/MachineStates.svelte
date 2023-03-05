@@ -7,18 +7,28 @@
 <section class="mb-8 px-4">
   <div class="container mx-auto space-y-8">
     <BoxedLabel label="Input">
-      <Tape value={$input} markIdx={$idx} />
+      <p>
+        <Tape value={$input} markIdx={$idx} />
+      </p>
     </BoxedLabel>
     <BoxedLabel label="Output">
-      <Tape value={$output} />
+      <p>
+        <Tape value={$output} />
+      </p>
     </BoxedLabel>
     <div class="grid grid-cols-2 gap-x-4">
       <BoxedLabel label="State">
-        {$currState || '...'}
+        <p>{$currState || '...'}</p>
       </BoxedLabel>
       <BoxedLabel label="Steps">
-        {$steps}
+        <p>{$steps}</p>
       </BoxedLabel>
     </div>
   </div>
 </section>
+
+<style lang="postcss">
+  p {
+    @apply text-lg md:text-3xl font-mono flex justify-center flex-wrap overflow-hidden break-before-all px-2
+  }
+</style>
