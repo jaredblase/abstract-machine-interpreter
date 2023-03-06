@@ -25,10 +25,10 @@
 					scrollbar scrollbar-thumb-[#ffffff30] scrollbar-track-transparent"
         />
       </div>
-      <BoxedLabel label="Controls" class="px-3 py-6 max-sm:col-span-2">
+      <BoxedLabel label="CONTROLS" class="px-3 py-6 max-sm:col-span-2">
         <ControlPanel />
       </BoxedLabel>
-      <BoxedLabel label="Memory" class="px-2 py-6 h-full max-h-[21rem] max-sm:col-span-2">
+      <BoxedLabel label="MEMORY" class="px-2 py-6 h-full max-h-[21rem] max-sm:col-span-2">
 				<div class="h-full overflow-auto scrollbar-thin scrollbar-thumb-[#ffffff40] scrollbar-track-transparent">
 					<Storages />
 				</div>

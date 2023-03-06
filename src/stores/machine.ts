@@ -1,25 +1,8 @@
-import { writable } from 'svelte/store'
-import type { Storage } from '../lib/interpreter'
-import type { AbstractMachine } from '../lib/interpreter/AbstractMachine'
+import { get, writable } from 'svelte/store'
+import { code } from './editor'
+import { interpret } from '../lib/interpreter'
 
-export let input = writable('')
-export let currState = writable('')
-export let steps = writable(0)
-export let idx = writable(0)
-export let output = writable('')
-export let memory = writable<Storage>(new Map())
-export let isHalted = writable(true)
-export let timelines = writable<AbstractMachine[]>([])
-export let acceptedIdx = writable<number | undefined>()
+const m = interpret(get(code))
+m.reset('')
 
-export function update(m: AbstractMachine) {
-	input.set(m.input)
-	currState.set(m.currState)
-	steps.set(m.steps)
-	idx.set(m.pointer)
-	output.set(m.output)
-	memory.set(m.storage)
-	isHalted.set(m.isHalted || m.acceptedTimeline !== undefined)
-	timelines.set(m.timelines)
-	acceptedIdx.set(m.acceptedTimeline)
-}
+export let machine = writable(m)

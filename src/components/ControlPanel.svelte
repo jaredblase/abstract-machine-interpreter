@@ -1,10 +1,8 @@
 <script lang="ts">
   import { interpret } from '../lib/interpreter'
-  import type { AbstractMachine } from '../lib/interpreter/AbstractMachine'
   import { message, code } from '../stores/editor'
-  import { isHalted, timelines, update, acceptedIdx } from '../stores/machine'
+  import { machine } from '../stores/machine'
 
-  let machine: AbstractMachine
   let value = '1000101'
   let timeout: NodeJS.Timer
   let idx = 0
@@ -18,24 +16,27 @@
     }
   }
 
-	$: if ($acceptedIdx != undefined) {
+	$: if ($machine.acceptedTimeline != undefined) {
 		message.set({
 			type: 'info',
-			text: `Accepted timeline at ${$acceptedIdx}`
+			text: `Accepted timeline at ${$machine.acceptedTimeline}`
 		})
-		idx = $acceptedIdx
+		idx = $machine.acceptedTimeline
 	}
 
-  $: if ($timelines[idx]) {
-    update($timelines[idx])
+  $: if ($machine.timelines[idx]) {
+    machine.set($machine.timelines[idx])
   }
+
+	$: isHalted = $machine.isHalted || $machine.isGlobalHalt
 
   $: isRunning = timeout != null
   function onReset() {
     try {
-      machine = interpret($code)
-      machine.reset(value)
-      update(machine)
+			const m = interpret($code)
+      m.reset(value)
+			machine.set(m)
+			idx = 0
       message.set({
         text: 'Compiled successfully.',
         type: 'info',
@@ -49,9 +50,9 @@
   }
 
   function onStep() {
-    if (!$isHalted) {
-      machine.step()
-      update(machine)
+    if (!isHalted) {
+      $machine.step()
+      machine.set($machine)
     } else if (timeout) {
       clearTimeout(timeout)
       timeout = null
@@ -83,10 +84,10 @@
   <select
     id="timeline"
     bind:value={idx}
-    disabled={$timelines.length == 0 || isRunning}
+    disabled={$machine.timelines.length == 0 || isRunning}
     class="rounded-md py-1 w-full text-gray-900"
   >
-    {#each $timelines as t (t.id)}
+    {#each $machine.timelines as t (t.id)}
       <option value={t.id}>
         {t.id}
         {#if t.isHalted}({t.isAccepted ? 'accepted' : 'dead'}){/if}
@@ -100,12 +101,12 @@
 <div class="grid gap-2 max-md:grid-cols-2">
   <button
     class="btn bg-green-600 enabled:hover:bg-green-700 enabled:active:bg-green-800 text-white"
-    disabled={$isHalted}
+    disabled={isHalted}
     on:click={onPlay}>{isRunning ? 'Pause' : 'Play'}</button
   >
   <button
     class="btn default"
-    disabled={$isHalted || isRunning}
+    disabled={isHalted || isRunning}
     on:click={onStep}>Step</button
   >
   <button class="btn default max-md:col-span-2" disabled={isRunning} on:click={onReset}>

@@ -3,9 +3,18 @@ export * from './interpreter'
 export type Storage = Map<string, Memory>
 export type States = Map<string, State>
 
-export type Memory = {
-	type: 'STACK' | 'QUEUE' | 'TAPE'
+export type Memory = Linear | Tape
+
+type Linear = {
+	type: 'STACK' | 'QUEUE'
 	data: string[]
+}
+
+export type Tape = {
+	type: 'TAPE' | '2D_TAPE'
+	xPtr: number
+	yPtr: number
+	data: string[][]
 }
 
 export type _symbol = string

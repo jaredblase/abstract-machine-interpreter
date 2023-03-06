@@ -1,4 +1,4 @@
-import type { Storage, States, Transition, FSAState, PDAState, TMState, _symbol } from '.'
+import type { Storage, States, Transition, FSAState, PDAState, TMState, _symbol, Tape } from '.'
 import { isFSAState, isPDAState } from '.'
 
 type AcceptTimeline = {
@@ -15,32 +15,52 @@ export class AbstractMachine {
 	#states: States
 	#currState: string
 	#steps = 0
-	#ptr = 0
-	#input: string
+	#inputMemoryId: string
 	#output: string
 	#timelines: AbstractMachine[]
 	#acceptTimeline: AcceptTimeline
+	#isInputTapeGenerated: boolean
 
 	constructor(storage: Storage, states: States, id?: number, currState?: string, steps?: number,
-		ptr?: number, input?: string, output?: string, timelines?: AbstractMachine[], acceptTimeline?: AcceptTimeline) {
+		output?: string, timelines?: AbstractMachine[], acceptTimeline?: AcceptTimeline, inputMemoryId?: string, isInputTapeGenerated?: boolean) {
 		this.#storage = storage
 		this.#states = states
 		this.#id = id ?? 0
+		this.#isInputTapeGenerated = isInputTapeGenerated ?? false
+
+		if (inputMemoryId === undefined) {
+			// look for the first tape
+			for (const [key, value] of storage) {
+				if (value.type === 'TAPE' || value.type === '2D_TAPE') {
+					inputMemoryId = key
+					break
+				}
+			}
+
+			// no tape was found, add t1 tape
+			if (inputMemoryId === undefined) {
+				this.#storage.set('t1', { type: 'TAPE', data: [], yPtr: 0, xPtr: 0 })
+				inputMemoryId = 't1'
+				this.#isInputTapeGenerated = true
+			}
+		}
+
+		this.#inputMemoryId = inputMemoryId
 
 		if (currState) {
 			this.#currState = currState
 			this.#steps = steps
-			this.#ptr = ptr
-			this.#input = input
 			this.#output = output
 			this.#timelines = timelines
 			this.#acceptTimeline = acceptTimeline
 		}
 	}
 
+	static cloneNewTimeline(machine: AbstractMachine,) {
+
+	}
+
 	reset(input: string) {
-		this.#input = `#${input}#`
-		this.#ptr = 0
 		this.#output = ''
 		this.#steps = 0
 		this.#currState = this.#states.keys().next().value
@@ -51,6 +71,7 @@ export class AbstractMachine {
 		for (const { data } of this.#storage.values()) {
 			data.length = 0
 		}
+		this.inputMemory.data = [(`#${input}#`).split('')]
 	}
 
 	step() {
@@ -69,10 +90,6 @@ export class AbstractMachine {
 	}
 
 	run() {
-		if (this.#ptr + 1 > this.#input.length) {
-			this.#currState = 'reject'
-		}
-
 		if (this.isHalted) return
 
 		const s = this.#states.get(this.#currState)
@@ -83,7 +100,7 @@ export class AbstractMachine {
 		} else if (isPDAState(s)) {
 			test = this.#PDAStep(s)
 		} else {
-			test = this.#TMStep()
+			test = this.#TMStep(s)
 		}
 
 		this.#steps++
@@ -100,7 +117,7 @@ export class AbstractMachine {
 			for (let i = 1; i < transitions.length; i++) {
 				this.#timelines.push(
 					new AbstractMachine(structuredClone(this.#storage), this.#states, this.#timelines.length, transitions[i].destination,
-						this.#steps, this.#ptr, this.#input, this.#output, this.#timelines, this.#acceptTimeline)
+						this.#steps, this.#output, this.#timelines, this.#acceptTimeline, this.#inputMemoryId, this.#isInputTapeGenerated)
 				)
 			}
 		}
@@ -114,14 +131,16 @@ export class AbstractMachine {
 			return () => true
 		}
 
+		const mem = this.inputMemory
+
 		switch (s.command) {
 			case 'SCAN':
 			case 'SCAN RIGHT':
-				symbol = this.#input[++this.#ptr]
+				symbol = mem.data[mem.yPtr][++mem.xPtr]
 				break
 
 			case 'SCAN LEFT':
-				symbol = this.#input[--this.#ptr]
+				symbol = mem.data[mem.yPtr][--mem.xPtr]
 				break
 		}
 
@@ -130,6 +149,10 @@ export class AbstractMachine {
 
 	#PDAStep(s: PDAState) {
 		const m = this.#storage.get(s.memoryName)
+
+		if (m.type !== 'QUEUE' && m.type !== 'STACK') {
+			throw Error('Attempt to add element to append to tape memory!')
+		}
 
 		if (s.command === 'WRITE') {
 			m.data.push(s.transitions[0].symbol)
@@ -141,7 +164,7 @@ export class AbstractMachine {
 		return (t: Transition) => t.symbol === symbol
 	}
 
-	#TMStep() {
+	#TMStep(s: TMState) {
 		return (t: Transition) => true
 	}
 
@@ -153,12 +176,12 @@ export class AbstractMachine {
 		return this.#steps
 	}
 
-	get pointer() {
-		return this.#ptr
+	get inputMemoryId() {
+		return this.#inputMemoryId
 	}
 
-	get input() {
-		return this.#input
+	get inputMemory() {
+		return this.#storage.get(this.#inputMemoryId) as Tape
 	}
 
 	get output() {
@@ -195,5 +218,9 @@ export class AbstractMachine {
 
 	get acceptedTimeline() {
 		return this.#acceptTimeline.idx
+	}
+
+	get isInputTapeGenerated() {
+		return this.#isInputTapeGenerated
 	}
 }

@@ -31,7 +31,17 @@ export function interpret(src: string) {
 				throw SyntaxError(`Expected Identifier token after '${type}' at ${cursor.getRowColPos()}`)
 			}
 
-			storage.set(cursor.getToken(), { type, data: [] })
+			switch(type) {
+				case 'STACK':
+				case 'QUEUE':
+					storage.set(cursor.getToken(), { type, data: [] })
+					break
+
+				case 'TAPE':
+					storage.set(cursor.getToken(), { type, data: [], yPtr: 0, xPtr: 0 })
+					break
+			}
+
 		} while (cursor.next() && !cursor.isType('LogicSection'))
 	}
 
@@ -47,6 +57,10 @@ export function interpret(src: string) {
 		cursor.next()
 		const stateName = cursor.getToken()
 		cursor.next()
+
+		if (cursor.isError()) {
+			throw SyntaxError(`Expected command token after state identifier '${stateName}]' at ${cursor.getRowColPos()}`)
+		}
 
 		// Parse FSA Transitions
 		if (cursor.isType('FSACommand')) {

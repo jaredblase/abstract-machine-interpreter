@@ -1,27 +1,25 @@
 <script lang="ts">
   import BoxedLabel from './BoxedLabel.svelte'
-  import { input, idx, output, currState, steps } from '../stores/machine'
+  import { machine } from '../stores/machine'
   import Tape from './Tape.svelte'
+
+	$: label = 'INPUT' + ($machine.isInputTapeGenerated ?  '' : ` (${$machine.inputMemoryId})`)
 </script>
 
 <section class="mb-8 px-4">
   <div class="container mx-auto space-y-8">
-    <BoxedLabel label="Input">
-      <p>
-        <Tape value={$input} markIdx={$idx} />
-      </p>
+    <BoxedLabel label={label} class="case">
+      <Tape tape={$machine.inputMemory} />
     </BoxedLabel>
-    <BoxedLabel label="Output">
-      <p>
-        <Tape value={$output} />
-      </p>
+    <BoxedLabel label="OUTPUT">
+      <p>{$machine.output || '...'}</p>
     </BoxedLabel>
     <div class="grid grid-cols-2 gap-x-4">
-      <BoxedLabel label="State">
-        <p>{$currState || '...'}</p>
+      <BoxedLabel label="STATE">
+        <p>{$machine.currState || '...'}</p>
       </BoxedLabel>
-      <BoxedLabel label="Steps">
-        <p>{$steps}</p>
+      <BoxedLabel label="STEPS">
+        <p>{$machine.steps}</p>
       </BoxedLabel>
     </div>
   </div>
@@ -29,6 +27,6 @@
 
 <style lang="postcss">
   p {
-    @apply text-lg md:text-3xl font-mono flex justify-center flex-wrap break-before-all px-2
+    @apply text-lg md:text-3xl font-mono flex justify-center flex-wrap break-before-all px-2;
   }
 </style>
