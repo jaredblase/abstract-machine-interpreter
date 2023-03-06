@@ -38,9 +38,11 @@ export function interpret(src: string) {
 				throw SyntaxError(`Storage ${id} is redeclared at ${cursor.getRowColPos()}`)
 			}
 
-			switch(type) {
+			switch (type) {
 				case 'STACK':
 					storage.set(id, new Stack())
+					break
+
 				case 'QUEUE':
 					storage.set(id, new Queue())
 					break
