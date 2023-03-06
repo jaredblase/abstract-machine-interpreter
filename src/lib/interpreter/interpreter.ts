@@ -2,6 +2,7 @@ import { AbsMacLanguage } from '../absmac'
 import type { FSAState, Memory, PDAState, TMState, Storage, States } from '.'
 import { ContextCursor } from './ContextCursor'
 import { AbstractMachine } from './AbstractMachine'
+import { Queue, Stack, Tape } from '../data-structures'
 
 /**
  * Interprets the source code to generate a new abstract machine.
@@ -25,7 +26,7 @@ export function interpret(src: string) {
 				throw SyntaxError(`Exptecting StorageType token at ${cursor.getRowColPos()}`)
 			}
 
-			const type = cursor.getToken() as Memory['type']
+			const type = cursor.getToken()
 
 			if (!(cursor.next() && cursor.isType('Identifier'))) {
 				throw SyntaxError(`Expected Identifier token after '${type}' at ${cursor.getRowColPos()}`)
@@ -33,12 +34,14 @@ export function interpret(src: string) {
 
 			switch(type) {
 				case 'STACK':
+					storage.set(cursor.getToken(), new Stack())
 				case 'QUEUE':
-					storage.set(cursor.getToken(), { type, data: [] })
+					storage.set(cursor.getToken(), new Queue())
 					break
 
 				case 'TAPE':
-					storage.set(cursor.getToken(), { type, data: [], yPtr: 0, xPtr: 0 })
+				case '2D_TAPE':
+					storage.set(cursor.getToken(), new Tape())
 					break
 			}
 

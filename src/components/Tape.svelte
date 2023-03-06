@@ -1,14 +1,14 @@
 <script lang="ts">
   import Caret from '../assets/caret.svelte'
-  import type { Tape } from '../lib/interpreter'
+  import type { Tape } from '../lib/data-structures'
 
   export let tape: Tape;
 </script>
 
-{#each tape.data as arr, i}
+{#each tape._data as arr, i}
   <p>
     {#each arr as char, j}
-      {@const isMarked = i == tape.yPtr && j == tape.xPtr}
+      {@const isMarked = i == tape.y && j == tape.x}
       <span class:mark={isMarked}>
         {char}
         {#if isMarked}

@@ -1,10 +1,10 @@
-import type { Storage, States, Transition, FSAState, PDAState, TMState, _symbol, Tape } from '.'
+import { type Storage, type States, type Transition, type FSAState, type PDAState, type TMState, type _symbol, isTMState, type TMTransition } from '.'
 import { isFSAState, isPDAState } from '.'
+import { Tape } from '../data-structures'
 
 type AcceptTimeline = {
 	idx?: number
 }
-
 
 /**
  * Implementation of a non-deterministic abstract machine holding its own set of timelines
@@ -31,7 +31,7 @@ export class AbstractMachine {
 		if (inputMemoryId === undefined) {
 			// look for the first tape
 			for (const [key, value] of storage) {
-				if (value.type === 'TAPE' || value.type === '2D_TAPE') {
+				if (value instanceof Tape) {
 					inputMemoryId = key
 					break
 				}
@@ -39,7 +39,7 @@ export class AbstractMachine {
 
 			// no tape was found, add t1 tape
 			if (inputMemoryId === undefined) {
-				this.#storage.set('t1', { type: 'TAPE', data: [], yPtr: 0, xPtr: 0 })
+				this.#storage.set('t1', new Tape())
 				inputMemoryId = 't1'
 				this.#isInputTapeGenerated = true
 			}
@@ -56,10 +56,6 @@ export class AbstractMachine {
 		}
 	}
 
-	static cloneNewTimeline(machine: AbstractMachine,) {
-
-	}
-
 	reset(input: string) {
 		this.#output = ''
 		this.#steps = 0
@@ -68,10 +64,10 @@ export class AbstractMachine {
 		this.#acceptTimeline = {}
 
 		// clear memory
-		for (const { data } of this.#storage.values()) {
-			data.length = 0
+		for (const m of this.#storage.values()) {
+			m.clear()
 		}
-		this.inputMemory.data = [(`#${input}#`).split('')]
+		this.inputMemory.set(`#${input}#`)
 	}
 
 	step() {
@@ -94,6 +90,7 @@ export class AbstractMachine {
 
 		const s = this.#states.get(this.#currState)
 		let test: (t: Transition) => boolean
+		let isTape = false
 
 		if (isFSAState(s)) {
 			test = this.#FSAStep(s)
@@ -113,10 +110,26 @@ export class AbstractMachine {
 			// current machine takes first possible transition
 			this.#currState = transitions[0].destination
 
+			// write to tape
+			if (isTMState(s)) {
+				(this.#storage.get(s.memoryName) as Tape).write((transitions[0] as TMTransition).replacement)
+			}
+
 			// create another machine for the rest of the transitions
 			for (let i = 1; i < transitions.length; i++) {
+				const storage: Storage = new Map()
+
+				for (const [key, value] of this.#storage) {
+					storage.set(key, value.clone())
+				}
+
+				// write to tape in cloned storage
+				if (isTMState(s)) {
+					(storage.get(s.memoryName) as Tape).write((transitions[i] as TMTransition).replacement)
+				}
+
 				this.#timelines.push(
-					new AbstractMachine(structuredClone(this.#storage), this.#states, this.#timelines.length, transitions[i].destination,
+					new AbstractMachine(storage, this.#states, this.#timelines.length, transitions[i].destination,
 						this.#steps, this.#output, this.#timelines, this.#acceptTimeline, this.#inputMemoryId, this.#isInputTapeGenerated)
 				)
 			}
@@ -131,16 +144,14 @@ export class AbstractMachine {
 			return () => true
 		}
 
-		const mem = this.inputMemory
-
 		switch (s.command) {
 			case 'SCAN':
 			case 'SCAN RIGHT':
-				symbol = mem.data[mem.yPtr][++mem.xPtr]
+				symbol = this.inputMemory.right()
 				break
 
 			case 'SCAN LEFT':
-				symbol = mem.data[mem.yPtr][--mem.xPtr]
+				symbol = this.inputMemory.left()
 				break
 		}
 
@@ -150,22 +161,43 @@ export class AbstractMachine {
 	#PDAStep(s: PDAState) {
 		const m = this.#storage.get(s.memoryName)
 
-		if (m.type !== 'QUEUE' && m.type !== 'STACK') {
+		if (m instanceof Tape) {
 			throw Error('Attempt to add element to append to tape memory!')
 		}
 
 		if (s.command === 'WRITE') {
-			m.data.push(s.transitions[0].symbol)
+			m.write(s.transitions[0].symbol)
 			return () => true
 		}
 
 		// read
-		let symbol: _symbol = m.type === 'QUEUE' ? m.data.shift() : m.data.pop()
+		let symbol: _symbol = m.read()
 		return (t: Transition) => t.symbol === symbol
 	}
 
 	#TMStep(s: TMState) {
-		return (t: Transition) => true
+		const m = this.#storage.get(s.memoryName) as Tape
+		let symbol: _symbol
+
+		switch (s.command) {
+			case 'RIGHT':
+				symbol = m.right()
+				break
+
+			case 'LEFT':
+				symbol = m.left()
+				break
+
+			case 'UP':
+				symbol = m.up()
+				break
+
+			case 'DOWN':
+				symbol = m.down()
+				break
+		}
+
+		return (t: Transition) => t.symbol === symbol
 	}
 
 	get currState() {

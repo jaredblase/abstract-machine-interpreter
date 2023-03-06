@@ -21,7 +21,6 @@
 			type: 'info',
 			text: `Accepted timeline at ${$machine.acceptedTimeline}`
 		})
-		idx = $machine.acceptedTimeline
 	}
 
   $: if ($machine.timelines[idx]) {
