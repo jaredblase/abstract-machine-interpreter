@@ -9,7 +9,7 @@
 <section class="mb-8 px-4">
   <div class="container mx-auto space-y-8">
     <BoxedLabel label={label} class="case">
-      <Tape tape={$machine.inputMemory} />
+      <Tape tape={$machine.inputMemory} class="text-lg md:text-3xl font-mono flex justify-center flex-wrap break-before-all px-2" />
     </BoxedLabel>
     <BoxedLabel label="OUTPUT">
       <p>{$machine.output || '...'}</p>

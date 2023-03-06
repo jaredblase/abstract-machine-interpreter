@@ -2,11 +2,14 @@
   import Caret from '../assets/caret.svelte'
   import type { Tape } from '../lib/data-structures'
 
-  export let tape: Tape;
+  export let tape: Tape
+
+  let className = ''
+  export { className as class }
 </script>
 
 {#each tape._data as arr, i}
-  <p>
+  <p class={className + "group"}>
     {#each arr as char, j}
       {@const isMarked = i == tape.y && j == tape.x}
       <span class:mark={isMarked}>
@@ -26,9 +29,5 @@
 <style lang="postcss">
   .mark {
     @apply relative inline;
-  }
-
-  p {
-    @apply text-lg md:text-3xl font-mono flex justify-center flex-wrap break-before-all px-2;
   }
 </style>

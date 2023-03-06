@@ -10,7 +10,7 @@
     {#if m[0] != $machine.inputMemoryId}
       <BoxedLabel label="{m[1]._type} {m[0]}" class="!py-2">
         {#if m[1] instanceof Tape}
-          <TapeComponent tape={m[1]} />
+          <TapeComponent tape={m[1]} class="text-lg font-mono flex justify-center flex-wrap break-before-all px-2" />
         {:else}
           <p>
             {m[1]._data}

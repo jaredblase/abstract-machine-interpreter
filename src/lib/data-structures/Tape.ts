@@ -34,7 +34,7 @@ export class Tape {
 			}
 		}
 
-		return this.data[this.yPtr][this.xPtr]
+		return row[this.xPtr]
 	}
 
 	left() {
@@ -74,7 +74,7 @@ export class Tape {
 	}
 
 	clear() {
-		this.data = [[]]
+		this.data = [['#']]
 		this.xPtr = 0
 		this.yPtr = 0
 	}
