@@ -11,6 +11,8 @@ export abstract class OneWay {
 
 	abstract clone(): OneWay
 
+	abstract get _type(): string
+
 	clear() {
 		this.data.length = 0
 	}

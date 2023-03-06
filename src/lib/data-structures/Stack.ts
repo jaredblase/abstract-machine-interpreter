@@ -14,4 +14,8 @@ export class Stack extends OneWay {
 	clone() {
 		return new Stack(this.data)
 	}
+
+	get _type() {
+		return 'Stack'
+	}
 }

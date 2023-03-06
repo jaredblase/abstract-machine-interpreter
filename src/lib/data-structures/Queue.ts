@@ -14,4 +14,8 @@ export class Queue extends OneWay {
 	clone() {
 		return new Queue(this.data)
 	}
+
+	get _type() {
+		return 'Queue'
+	}
 }

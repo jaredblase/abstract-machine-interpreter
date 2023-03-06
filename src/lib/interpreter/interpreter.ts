@@ -3,6 +3,7 @@ import type { FSAState, Memory, PDAState, TMState, Storage, States } from '.'
 import { ContextCursor } from './ContextCursor'
 import { AbstractMachine } from './AbstractMachine'
 import { Queue, Stack, Tape } from '../data-structures'
+import { OneWay } from '../data-structures/OneWay'
 
 /**
  * Interprets the source code to generate a new abstract machine.
@@ -32,16 +33,21 @@ export function interpret(src: string) {
 				throw SyntaxError(`Expected Identifier token after '${type}' at ${cursor.getRowColPos()}`)
 			}
 
+			const id = cursor.getToken()
+			if (storage.has(id)) {
+				throw SyntaxError(`Storage ${id} is redeclared at ${cursor.getRowColPos()}`)
+			}
+
 			switch(type) {
 				case 'STACK':
-					storage.set(cursor.getToken(), new Stack())
+					storage.set(id, new Stack())
 				case 'QUEUE':
-					storage.set(cursor.getToken(), new Queue())
+					storage.set(id, new Queue())
 					break
 
 				case 'TAPE':
 				case '2D_TAPE':
-					storage.set(cursor.getToken(), new Tape())
+					storage.set(id, new Tape(type))
 					break
 			}
 
@@ -102,6 +108,15 @@ export function interpret(src: string) {
 			}
 
 			const memoryName = cursor.getToken() as PDAState['memoryName']
+			const m = storage.get(memoryName)
+
+			if (m === undefined) {
+				throw SyntaxError(`Storage ${memoryName} not declared. Used at (${cursor.getRowColPos()})`)
+			}
+
+			if (!(m instanceof OneWay)) {
+				throw SyntaxError(`${command} command can only be done with QUEUE or STACK data types (${cursor.getRowColPos()})`)
+			}
 
 			if (cursor.next() && !cursor.isType('Transition')) {
 				throw SyntaxError(`Expected at least 1 transition in state declaration at ${cursor.getRowColPos()}`)
@@ -139,6 +154,18 @@ export function interpret(src: string) {
 
 		if (cursor.next() && !cursor.isType('TMTransition')) {
 			throw SyntaxError(`Expected at least 1 transition in state declaration at ${cursor.getRowColPos()}`)
+		}
+
+		const m = storage.get(memoryName)
+
+		if (m === undefined) {
+			throw SyntaxError(`Storage ${memoryName} not declared. Used at (${cursor.getRowColPos()})`)
+		}
+
+		if ((command === 'UP' || command === 'DOWN') && m._type !== '2D_TAPE') {
+			throw SyntaxError(`${command} command is only allowed for 2D_TAPE data type (${cursor.getRowColPos()})`)
+		} else if (m._type !== 'TAPE' && m._type !== '2D_TAPE') {
+			throw SyntaxError(`${command} command is only allowed for TAPE or 2D_TAPE data types (${cursor.getRowColPos()})`)
 		}
 
 		const transitions = [] as TMState['transitions']

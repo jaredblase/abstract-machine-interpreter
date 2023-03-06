@@ -39,7 +39,7 @@ export class AbstractMachine {
 
 			// no tape was found, add t1 tape
 			if (inputMemoryId === undefined) {
-				this.#storage.set('t1', new Tape())
+				this.#storage.set('t1', new Tape('TAPE'))
 				inputMemoryId = 't1'
 				this.#isInputTapeGenerated = true
 			}

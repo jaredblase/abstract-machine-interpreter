@@ -1,11 +1,16 @@
 import type { _symbol } from '../interpreter'
 
+type TapeType = 'TAPE' | '2D_TAPE'
+
 export class Tape {
 	private data: _symbol[][]
 	private xPtr: number
 	private yPtr: number
+	private type: TapeType
 
-	constructor(data?: _symbol[][], xPtr?: number, yPtr?: number) {
+	constructor(type: TapeType, data?: _symbol[][], xPtr?: number, yPtr?: number) {
+		this.type = type
+
 		if (data !== undefined) {
 			this.data = structuredClone(data)
 			this.xPtr = xPtr ?? 0
@@ -86,7 +91,11 @@ export class Tape {
 		return this.data
 	}
 
+	get _type() {
+		return this.type
+	}
+
 	clone() {
-		return new Tape(this.data, this.xPtr, this.yPtr)
+		return new Tape(this.type, this.data, this.xPtr, this.yPtr)
 	}
 }
