@@ -79,14 +79,14 @@
 	>
 		<h1 class="text-3xl font-mono select-none">Abstract</h1>
 		<div class="space-x-2 absolute right-0 mr-2 sm:static">
-			<button on:click={handleThemeClick}>
+			<button on:click={handleThemeClick} aria-label="Toggle dark mode" title="Toggle dark mode">
 				{#if theme == 'light'}
 					<Sun class="h-7 icon" />
 				{:else}
 					<Moon class="h-7 icon" />
 				{/if}
 			</button>
-			<button on:click={() => modal.set(modalId)}>
+			<button on:click={() => modal.set(modalId)} aria-label="Open more information dialog" title="More information">
 				<InfoIcon class="h-7 icon" />
 			</button>
 		</div>

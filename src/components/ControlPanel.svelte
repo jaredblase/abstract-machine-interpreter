@@ -106,7 +106,7 @@
 	<div class="grid gap-2 max-md:grid-cols-2">
 		<button
 			type="button"
-			class="btn bg-green-600 enabled:hover:bg-green-700 enabled:active:bg-green-800 text-white"
+			class="btn bg-green-700 enabled:hover:bg-green-800 enabled:active:bg-green-900 border-transparent text-white"
 			disabled={isHalted}
 			on:click={onPlay}>{isRunning ? 'Pause' : 'Play'}</button
 		>
@@ -145,10 +145,11 @@
 	}
 
 	.btn {
-		@apply flex-1 rounded-md py-1 transition-colors font-medium;
+		@apply flex-1 rounded-md py-1 transition-colors font-medium border-solid border shadow-sm gdark:border-transparent;
 	}
 
 	.default {
-		@apply bg-gray-100 enabled:hover:bg-gray-200 enabled:active:bg-gray-300 text-gray-800;
+		@apply bg-gray-100 enabled:hover:bg-gray-200 enabled:active:bg-gray-300 text-gray-800
+		border-gray-300;
 	}
 </style>
