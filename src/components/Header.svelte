@@ -17,32 +17,60 @@
 </script>
 
 <Dialog id={modalId} on:close={() => modal.set('')}>
-	<div class="max-w-3xl w-full bg-white rounded-3xl p-8">
-		<h1 class="text-3xl font-medium font-mono mb-2">Instructions</h1>
-		<ol class="list-decimal list-inside pl-2">
-			<li>
-				Write your own in the Turing machine program area. See below for syntax.
-			</li>
-			<li>
-				Enter something in the 'Input' area - this will be written on the tape
-				initially as input to the machine.
-			</li>
-			<li>Click 'Reset' to initialise the machine.</li>
-			<li>
-				Click on 'Run' to start the Turing machine and run it until it halts (if
-				ever).
-			</li>
-			<li>
-				Click on 'Pause' to interrupt the Turing machine while it is running.
-			</li>
-			<li>
-				Alternately, click 'Step' to run a single step of the Turing machine.
-			</li>
-			<li>
-				Click 'Reset' to restore the Turing machine to its initial state so it
-				can be run again.
-			</li>
-		</ol>
+	<div class="max-w-3xl w-full bg-white rounded-3xl p-8 space-y-4">
+		<article>
+			<h1 class="text-3xl font-medium font-mono">Instructions</h1>
+			<ol class="list-decimal list-inside pl-2">
+				<li>
+					Write your own in the abstract machine program area. See below for
+					syntax.
+				</li>
+				<li>
+					Enter something in the 'Input' area - this will be written on the tape
+					initially as input to the machine.
+				</li>
+				<li>Click 'Reset' to initialize the machine.</li>
+				<li>
+					Click on 'Run' to start the Turing machine and run it until it halts
+					(if ever).
+				</li>
+				<li>
+					Click on 'Pause' to interrupt the Turing machine while it is running.
+				</li>
+				<li>
+					Alternately, click 'Step' to run a single step of the Turing machine.
+				</li>
+				<li>
+					Click 'Reset' to restore the Turing machine to its initial state so it
+					can be run again.
+				</li>
+			</ol>
+		</article>
+		<article>
+			<h2 class="text-3xl font-medium font-mono">Syntax</h2>
+			<h3 class="text-lg font-medium">.DATA Section</h3>
+			<p>
+				Memory used by the machine should be delcared in this section.
+				Declaration can be any of the following:
+			</p>
+			<ol class="list-decimal list-inside pl-2">
+				<li>STACK &lt;var_name&gt;</li>
+				<li>QUEUE &lt;var_name&gt;</li>
+				<li>TAPE &lt;var_name&gt;</li>
+				<li>2D_TAPE &lt;var_name&gt;</li>
+			</ol>
+			<h3 class="text-lg font-medium mt-2">.LOGIC Section</h3>
+			<p>
+				States and transitions of the machine should be delcared in this
+				section. Declaration can be any of the following:
+			</p>
+			<ol class="list-decimal list-inside pl-2">
+				<li>SCAN &lt;var_name&gt;</li>
+				<li>QUEUE &lt;var_name&gt;</li>
+				<li>TAPE &lt;var_name&gt;</li>
+				<li>2D_TAPE &lt;var_name&gt;</li>
+			</ol>
+		</article>
 	</div>
 </Dialog>
 <header class="dark:text-white">

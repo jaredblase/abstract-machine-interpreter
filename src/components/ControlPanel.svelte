@@ -66,9 +66,14 @@
 
 		timeout = setInterval(onStep, 200)
 	}
+
+	function onSubmit() {
+		onReset()
+		onPlay()
+	}
 </script>
 
-<form on:submit|preventDefault={onReset}>
+<form on:submit|preventDefault={onSubmit}>
 	<div>
 		<label for="input" class="block">Initial input</label>
 		<input
@@ -112,7 +117,7 @@
 			on:click={onStep}>Step</button
 		>
 		<button
-			type="submit"
+			type="button"
 			class="btn default max-md:col-span-2"
 			disabled={isRunning}
 			on:click={onReset}
