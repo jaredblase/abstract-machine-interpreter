@@ -2,6 +2,7 @@
 	import { interpret } from '../lib/interpreter'
 	import { message, code } from '../stores/editor'
 	import { machine } from '../stores/machine'
+	import { modal } from '../stores/modal'
 
 	let value = '1000101'
 	let timeout: NodeJS.Timer
@@ -71,6 +72,10 @@
 		onReset()
 		onPlay()
 	}
+
+	function onShowGraph() {
+		modal.set('graph-dialog')
+	}
 </script>
 
 <form on:submit|preventDefault={onSubmit}>
@@ -118,11 +123,14 @@
 		>
 		<button
 			type="button"
-			class="btn default max-md:col-span-2"
+			class="btn default"
 			disabled={isRunning}
 			on:click={onReset}
 		>
 			Reset
+		</button>
+		<button type="button" class="btn default" on:click={onShowGraph}>
+			Show Graph
 		</button>
 	</div>
 </form>

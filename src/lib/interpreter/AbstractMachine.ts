@@ -255,4 +255,8 @@ export class AbstractMachine {
 	get isInputTapeGenerated() {
 		return this.#isInputTapeGenerated
 	}
+
+	get states() {
+		return this.#states
+	}
 }
