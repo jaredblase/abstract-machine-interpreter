@@ -16,12 +16,12 @@
 		}
 	}
 
+	$: document.body.style.overflow = $modal == '' ? 'auto' : 'hidden';
+
 	$: if ($modal == id) {
 		dialog.showModal()
-		document.body.style.overflow = 'hidden'
 	} else {
 		dialog?.close()
-		document.body.style.overflow = 'auto'
 	}
 </script>
 
