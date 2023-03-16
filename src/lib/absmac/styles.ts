@@ -16,7 +16,7 @@ export const theme = EditorView.theme(
       borderColor: '#fff',
     },
     '&.cm-focused .cm-selectionBackground, ::selection': {
-      backgroundColor: '#036dd626',
+      backgroundColor: '#007accAA',
     },
     '.cm-line': {
       borderBlock: '1px solid transparent',
@@ -25,6 +25,9 @@ export const theme = EditorView.theme(
       backgroundColor: 'unset',
       borderBlock: '1px solid rgb(255 255 255 / 0.1)',
     },
+		'.cm-selectionMatch': {
+			backgroundColor: '#3a3d41'
+		},
     settings: {
       lineHighlight: '#8a91991a',
     },

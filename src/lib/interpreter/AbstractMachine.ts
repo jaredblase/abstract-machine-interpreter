@@ -90,7 +90,6 @@ export class AbstractMachine {
 
 		const s = this.#states.get(this.#currState)
 		let test: (t: Transition) => boolean
-		let isTape = false
 
 		if (isFSAState(s)) {
 			test = this.#FSAStep(s)

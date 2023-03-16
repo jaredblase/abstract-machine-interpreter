@@ -29,9 +29,7 @@ export class Tape {
 		const row = this.data[this.yPtr]
 
 		if (row[++this.xPtr] === undefined) {
-			for (let i = 0; i < this.data.length; i++) {
-				this.data[i].push('#')
-			}
+			this.addRight()
 		}
 
 		return row[this.xPtr]
@@ -41,9 +39,7 @@ export class Tape {
 		const row = this.data[this.yPtr]
 
 		if (row[this.xPtr - 1] === undefined) {
-			for (let i = 0; i < this.data.length; i++) {
-				this.data[i].unshift('#')
-			}
+			this.addLeft()
 		} else {
 			this.xPtr--
 		}
@@ -53,7 +49,7 @@ export class Tape {
 
 	down() {
 		if (this.data[++this.yPtr] === undefined) {
-			this.data.push(new Array(this.data[0].length).fill('#'))
+			this.addDown()
 		}
 
 		return this.data[this.yPtr][this.xPtr]
@@ -61,7 +57,7 @@ export class Tape {
 
 	up() {
 		if (this._data[this.yPtr - 1] === undefined) {
-			this.data.unshift(new Array(this.data[0].length).fill('#'))
+			this.addUp()
 		} else {
 			this.yPtr--
 		}
@@ -69,8 +65,42 @@ export class Tape {
 		return this.data[this.yPtr][this.xPtr]
 	}
 
-	write(replacement: _symbol) {
+	write(replacement: _symbol): void {
 		this.data[this.yPtr][this.xPtr] = replacement
+
+		if (replacement === '#') return
+
+		// cursor at the ends and char not '#'
+		if (this.xPtr == 0) {
+			this.addLeft()
+			this.xPtr++
+			return
+		}
+
+		if (this.data[this.yPtr][this.xPtr + 1] == undefined) {
+			this.addRight()
+			return
+		}
+	}
+
+	private addRight() {
+		for (let i = 0; i < this.data.length; i++) {
+			this.data[i].push('#')
+		}
+	}
+
+	private addLeft() {
+		for (let i = 0; i < this.data.length; i++) {
+			this.data[i].unshift('#')
+		}
+	}
+
+	private addUp() {
+		this.data.unshift(new Array(this.data[0].length).fill('#'))
+	}
+
+	private addDown() {
+		this.data.push(new Array(this.data[0].length).fill('#'))
 	}
 
 	clear() {
