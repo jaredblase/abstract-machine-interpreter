@@ -4,13 +4,16 @@
 	import { machine } from '../stores/machine'
 	import { getElements } from '../lib/graph/graph-generator'
 	import cytoscape, { type Core } from 'cytoscape'
+	import type { AbstractMachine } from '../lib/interpreter/AbstractMachine'
 
 	cytoscape.warnings(import.meta.env.DEV)
 
 	let container: HTMLDivElement
 	let c: Core
+	let cache: AbstractMachine
 
-	$: {
+	$: if (cache !== $machine) { // rerender graph only if reference object changed (new machine generated)
+		cache = $machine
 		c?.destroy()
 		c = cytoscape({
 			container,
