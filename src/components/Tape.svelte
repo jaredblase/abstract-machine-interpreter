@@ -9,7 +9,7 @@
 </script>
 
 {#each tape._data as arr, i}
-	<p class={className + 'group'}>
+	<p class={className}>
 		{#each arr as char, j}
 			{@const isMarked = i == tape.y && j == tape.x}
 			<span class:mark={isMarked}>

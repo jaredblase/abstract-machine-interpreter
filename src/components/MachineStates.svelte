@@ -10,10 +10,10 @@
 
 <section class="mb-8 px-4">
 	<div class="container mx-auto space-y-8">
-		<BoxedLabel {label} class="case">
+		<BoxedLabel {label}>
 			<Tape
 				tape={$machine.inputMemory}
-				class="text-lg md:text-3xl font-mono flex justify-center flex-wrap break-before-all px-2"
+				class="text-lg md:text-3xl font-mono flex [&_:first-child]:ml-auto [&_:last-child]:mr-auto last:mr-auto"
 			/>
 		</BoxedLabel>
 		<BoxedLabel label="OUTPUT">
