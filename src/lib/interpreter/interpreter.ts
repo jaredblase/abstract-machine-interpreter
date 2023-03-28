@@ -65,6 +65,7 @@ export function interpret(src: string) {
 	cursor.next() // Skip .LOGIC
 
 	while (cursor.isType('State')) {
+		const lineNumber = cursor.getRowPos()
 		cursor.next()
 		const stateName = cursor.getToken()
 		cursor.next()
@@ -97,7 +98,7 @@ export function interpret(src: string) {
 				cursor.next()
 			}
 
-			states.set(stateName, { command, transitions })
+			states.set(stateName, { command, transitions, lineNumber })
 			continue
 		}
 
@@ -141,7 +142,7 @@ export function interpret(src: string) {
 				cursor.next()
 			}
 
-			states.set(stateName, { command, memoryName, transitions })
+			states.set(stateName, { command, memoryName, transitions, lineNumber })
 			continue
 		}
 
@@ -193,7 +194,7 @@ export function interpret(src: string) {
 			cursor.next()
 		}
 
-		states.set(stateName, { command, memoryName, transitions })
+		states.set(stateName, { command, memoryName, transitions, lineNumber })
 	}
 
 	if (cursor.isError()) {

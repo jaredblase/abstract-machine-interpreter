@@ -39,4 +39,8 @@ export class ContextCursor {
 		const arr = this.#src.slice(0, this.#cursor.node.from).split('\n')
 		return `${arr.length}:${arr.at(-1).length}`
 	}
+
+	getRowPos() {
+		return this.#src.slice(0, this.#cursor.node.from).split('\n').length
+	}
 }

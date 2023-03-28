@@ -25,18 +25,21 @@ export const TM_COMMANDS = ['RIGHT', 'LEFT', 'UP', 'DOWN'] as const
 export interface FSAState {
 	command: typeof FSA_COMMANDS[number]
 	transitions: Transition[]
+	lineNumber: number
 }
 
 export interface PDAState {
 	command: typeof PDA_COMMANDS[number]
 	memoryName: string
 	transitions: Transition[]
+	lineNumber: number
 }
 
 export interface TMState {
 	command: typeof TM_COMMANDS[number]
 	memoryName: string
 	transitions: TMTransition[]
+	lineNumber: number
 }
 
 export type State = FSAState | PDAState | TMState
