@@ -11,7 +11,5 @@
 	>
 		{label}
 	</header>
-	<div class="overflow-x-auto py-3 scrollbar-thin scrollbar-thumb-[#ffffff30] scrollbar-track-transparent">
-		<slot />
-	</div>
+	<slot />
 </div>
