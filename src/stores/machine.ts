@@ -6,3 +6,4 @@ const m = interpret(get(code))
 m.reset('')
 
 export let machine = writable(m)
+export let shouldRerenderGraph = writable(true)

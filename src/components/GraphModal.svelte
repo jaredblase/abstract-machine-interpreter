@@ -1,19 +1,17 @@
 <script lang="ts">
 	import Dialog from './Dialog.svelte'
 	import { modal } from '../stores/modal'
-	import { machine } from '../stores/machine'
+	import { shouldRerenderGraph, machine } from '../stores/machine'
 	import { getElements } from '../lib/graph/graph-generator'
 	import cytoscape, { type Core } from 'cytoscape'
-	import type { AbstractMachine } from '../lib/interpreter/AbstractMachine'
 
 	cytoscape.warnings(import.meta.env.DEV)
 
 	let container: HTMLDivElement
 	let c: Core
-	let cache: AbstractMachine
 
-	$: if (cache !== $machine) { // rerender graph only if reference object changed (new machine generated)
-		cache = $machine
+	$: if ($shouldRerenderGraph) { // rerender graph only if reference object changed (new machine generated)
+		shouldRerenderGraph.set(false)
 		c?.destroy()
 		c = cytoscape({
 			container,

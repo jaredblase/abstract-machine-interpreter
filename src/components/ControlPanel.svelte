@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { interpret } from '../lib/interpreter'
 	import { message, code } from '../stores/editor'
-	import { machine } from '../stores/machine'
+	import { machine, shouldRerenderGraph } from '../stores/machine'
 	import { modal } from '../stores/modal'
 
 	let value = '1000101'
@@ -36,6 +36,7 @@
 			const m = interpret($code)
 			m.reset(value)
 			machine.set(m)
+			shouldRerenderGraph.set(true)
 			idx = 0
 			message.set({
 				text: 'Compiled successfully.',
