@@ -25,7 +25,7 @@
 		</BoxedLabel>
 		<div class="grid grid-cols-2 gap-x-4">
 			<BoxedLabel label="STATE">
-				<p>{$machine.currState || '...'}</p>
+				<p>{$machine.currStateName || '...'}</p>
 			</BoxedLabel>
 			<BoxedLabel label="STEPS">
 				<p>{$machine.steps}</p>

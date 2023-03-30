@@ -8,13 +8,11 @@
 	let timeout: NodeJS.Timer
 	let idx = 0
 
-	$: {
-		if (value || $code) {
-			message.set({
-				text: 'Changes have not been saved...',
-				type: '',
-			})
-		}
+	$: if (value || $code) {
+		message.set({
+			text: 'Changes have not been saved...',
+			type: '',
+		})
 	}
 
 	$: if ($machine.acceptedTimeline != undefined) {
@@ -31,6 +29,7 @@
 	$: isHalted = $machine.isHalted || $machine.isGlobalHalt
 
 	$: isRunning = timeout != null
+
 	function onReset() {
 		try {
 			const m = interpret($code)
