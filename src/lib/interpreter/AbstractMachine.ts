@@ -1,5 +1,5 @@
-import { type Storage, type States, type Transition, type FSAState, type PDAState, type TMState, type _symbol, isTMState, type TMTransition } from '.'
-import { isFSAState, isPDAState } from '.'
+import type { Storage, States, Transition, FSAState, PDAState, TMState, _symbol, TMTransition } from '.'
+import { isFSAState, isPDAState, isTMState } from '.'
 import { Tape } from '../data-structures'
 
 type AcceptTimeline = {
@@ -10,23 +10,24 @@ type AcceptTimeline = {
  * Implementation of a non-deterministic abstract machine holding its own set of timelines
  */
 export class AbstractMachine {
-	#id: number
-	#storage: Storage
-	#states: States
-	#currState: string
-	#steps = 0
-	#inputMemoryId: string
-	#output: string
-	#timelines: AbstractMachine[]
-	#acceptTimeline: AcceptTimeline
-	#isInputTapeGenerated: boolean
+	private _id: number
+	private _storage: Storage
+	private _states: States
+	private _currState: string
+	private _prevState: string
+	private _steps = 0
+	private _inputMemoryId: string
+	private _output: string
+	private _timelines: AbstractMachine[]
+	private _acceptedTimeline: AcceptTimeline
+	private _isInputTapeGenerated: boolean
 
-	constructor(storage: Storage, states: States, id?: number, currState?: string, steps?: number,
+	constructor(storage: Storage, states: States, id?: number, currState?: string, prevState?: string, steps?: number,
 		output?: string, timelines?: AbstractMachine[], acceptTimeline?: AcceptTimeline, inputMemoryId?: string, isInputTapeGenerated?: boolean) {
-		this.#storage = storage
-		this.#states = states
-		this.#id = id ?? 0
-		this.#isInputTapeGenerated = isInputTapeGenerated ?? false
+		this._storage = storage
+		this._states = states
+		this._id = id ?? 0
+		this._isInputTapeGenerated = isInputTapeGenerated ?? false
 
 		if (inputMemoryId === undefined) {
 			// look for the first tape
@@ -39,32 +40,33 @@ export class AbstractMachine {
 
 			// no tape was found, add t1 tape
 			if (inputMemoryId === undefined) {
-				this.#storage.set('t1', new Tape('TAPE'))
+				this._storage.set('t1', new Tape('TAPE'))
 				inputMemoryId = 't1'
-				this.#isInputTapeGenerated = true
+				this._isInputTapeGenerated = true
 			}
 		}
 
-		this.#inputMemoryId = inputMemoryId
+		this._inputMemoryId = inputMemoryId
 
 		if (currState) {
-			this.#currState = currState
-			this.#steps = steps
-			this.#output = output
-			this.#timelines = timelines
-			this.#acceptTimeline = acceptTimeline
+			this._currState = currState
+			this._prevState = prevState
+			this._steps = steps
+			this._output = output
+			this._timelines = timelines
+			this._acceptedTimeline = acceptTimeline
 		}
 	}
 
 	reset(input: string) {
-		this.#output = ''
-		this.#steps = 0
-		this.#currState = this.#states.keys().next().value
-		this.#timelines = [this]
-		this.#acceptTimeline = {}
+		this._output = ''
+		this._steps = 0
+		this._currState = this._states.keys().next().value
+		this._timelines = [this]
+		this._acceptedTimeline = {}
 
 		// clear memory
-		for (const m of this.#storage.values()) {
+		for (const m of this._storage.values()) {
 			m.clear()
 		}
 		this.inputMemory.set(`#${input}#`)
@@ -72,76 +74,81 @@ export class AbstractMachine {
 
 	step() {
 		if (!this.isGlobalHalt) {
-			for (let i = this.#timelines.length - 1; i >= 0; i--) {
-				this.#timelines[i].run()
+			for (let i = this._timelines.length - 1; i >= 0; i--) {
+				this._timelines[i].run()
 			}
 		}
 
-		for (let i = this.#timelines.length - 1; i >= 0; i--) {
-			if (this.#timelines[i].isAccepted) {
-				this.#acceptTimeline.idx = this.#timelines[i].#id
+		for (let i = this._timelines.length - 1; i >= 0; i--) {
+			if (this._timelines[i].isAccepted) {
+				this._acceptedTimeline.idx = this._timelines[i]._id
 				break
 			}
 		}
 	}
 
-	run() {
+	private run() {
 		if (this.isHalted) return
 
-		const s = this.#states.get(this.#currState)
+		const s = this._states.get(this._currState)
 		let test: (t: Transition) => boolean
 
 		if (isFSAState(s)) {
-			test = this.#FSAStep(s)
+			test = this.FSAStep(s)
 		} else if (isPDAState(s)) {
-			test = this.#PDAStep(s)
+			test = this.PDAStep(s)
 		} else {
-			test = this.#TMStep(s)
+			test = this.TMStep(s)
 		}
 
-		this.#steps++
+		this._steps++
+		this._prevState = this._currState
 		const transitions = s.transitions.filter(test)
 
 		// no valid transitions
 		if (transitions.length === 0) {
-			this.#currState = 'reject'
-		} else {
-			// current machine takes first possible transition
-			this.#currState = transitions[0].destination
+			return this._currState = 'reject'
+		}
 
-			// write to tape
+		// current machine takes first possible transition
+		this._currState = transitions[0].destination
+		const output = this._output
+
+		// write to tape
+		if (isTMState(s)) {
+			(this._storage.get(s.memoryName) as Tape).write((transitions[0] as TMTransition).replacement)
+		} else if (s.command == 'PRINT') {
+			this._output += s.transitions[0].symbol
+		}
+
+		// create another machine for the rest of the transitions
+		for (let i = 1; i < transitions.length; i++) {
+			const storage: Storage = new Map()
+
+			for (const [key, value] of this._storage) {
+				storage.set(key, value.clone())
+			}
+
+			let temp = output
+
+			// write to tape in cloned storage
 			if (isTMState(s)) {
-				(this.#storage.get(s.memoryName) as Tape).write((transitions[0] as TMTransition).replacement)
+				(storage.get(s.memoryName) as Tape).write((transitions[i] as TMTransition).replacement)
+			} else if (s.command == 'PRINT') {
+				temp += transitions[i].symbol
 			}
 
-			// create another machine for the rest of the transitions
-			for (let i = 1; i < transitions.length; i++) {
-				const storage: Storage = new Map()
-
-				for (const [key, value] of this.#storage) {
-					storage.set(key, value.clone())
-				}
-
-				// write to tape in cloned storage
-				if (isTMState(s)) {
-					(storage.get(s.memoryName) as Tape).write((transitions[i] as TMTransition).replacement)
-				}
-
-				this.#timelines.push(
-					new AbstractMachine(storage, this.#states, this.#timelines.length, transitions[i].destination,
-						this.#steps, this.#output, this.#timelines, this.#acceptTimeline, this.#inputMemoryId, this.#isInputTapeGenerated)
-				)
-			}
+			this._timelines.push(
+				new AbstractMachine(storage, this._states, this._timelines.length, transitions[i].destination, this._prevState,
+					this._steps, temp, this._timelines, this._acceptedTimeline, this._inputMemoryId, this._isInputTapeGenerated)
+			)
 		}
 	}
 
-	#FSAStep(s: FSAState) {
+	private FSAStep(s: FSAState) {
 		let symbol: string
 
-		if (s.command === 'PRINT') {
-			this.#output += s.transitions[0].symbol
-			return () => true
-		}
+		if (s.command === 'PRINT') return () => true
 
 		switch (s.command) {
 			case 'SCAN':
@@ -157,8 +164,8 @@ export class AbstractMachine {
 		return (t: Transition) => t.symbol === symbol
 	}
 
-	#PDAStep(s: PDAState) {
-		const m = this.#storage.get(s.memoryName)
+	private PDAStep(s: PDAState) {
+		const m = this._storage.get(s.memoryName)
 
 		if (m instanceof Tape) {
 			throw Error('Attempt to add element to append to tape memory!')
@@ -174,8 +181,8 @@ export class AbstractMachine {
 		return (t: Transition) => t.symbol === symbol
 	}
 
-	#TMStep(s: TMState) {
-		const m = this.#storage.get(s.memoryName) as Tape
+	private TMStep(s: TMState) {
+		const m = this._storage.get(s.memoryName) as Tape
 		let symbol: _symbol
 
 		switch (s.command) {
@@ -200,62 +207,74 @@ export class AbstractMachine {
 	}
 
 	get currState() {
-		return this.#currState
+		return this._states.get(this._currState)
+	}
+
+	get currStateName() {
+		return this._currState
+	}
+
+	get prevState() {
+		return this._states.get(this._prevState)
+	}
+
+	get prevStateName() {
+		return this._prevState
 	}
 
 	get steps() {
-		return this.#steps
+		return this._steps
 	}
 
 	get inputMemoryId() {
-		return this.#inputMemoryId
+		return this._inputMemoryId
 	}
 
 	get inputMemory() {
-		return this.#storage.get(this.#inputMemoryId) as Tape
+		return this._storage.get(this._inputMemoryId) as Tape
 	}
 
 	get output() {
-		return this.#output
+		return this._output
 	}
 
 	get storage() {
-		return this.#storage
+		return this._storage
 	}
 
 	get isHalted() {
-		return this.#currState === 'accept' || this.#currState === 'reject'
+		return this._currState === 'accept' || this._currState === 'reject'
 	}
 
 	get isGlobalHalt() {
-		if (this.#acceptTimeline.idx !== undefined) {
+		if (this._acceptedTimeline.idx !== undefined) {
 			return true
 		}
 
-		return this.#timelines.find(t => t.#currState !== 'reject') === undefined
+		return this._timelines.find(t => t._currState !== 'reject') === undefined
 	}
 
 	get isAccepted() {
-		return this.#currState === 'accept'
+		return this._currState === 'accept'
 	}
 
 	get timelines() {
-		return this.#timelines
+		return this._timelines
 	}
 
 	get id() {
-		return this.#id
+		return this._id
 	}
 
 	get acceptedTimeline() {
-		return this.#acceptTimeline.idx
+		return this._acceptedTimeline.idx
 	}
 
 	get isInputTapeGenerated() {
-		return this.#isInputTapeGenerated
+		return this._isInputTapeGenerated
 	}
 
 	get states() {
-		return this.#states
+		return this._states
 	}
 }
