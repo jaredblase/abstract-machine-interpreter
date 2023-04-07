@@ -22,7 +22,10 @@ export class Tape {
 
 	set(data: string) {
 		this.clear()
-		this.data = [data.split('')]
+		const rows = data.split('\n')
+		// look for the longest string and add 2 to account for 2 sharps to add at both ends
+		const maxLen = rows.reduce((currMax,  row) => currMax > row.length ? currMax : row.length, 0) + 2
+		this.data = rows.map(d => `#${d}`.padEnd(maxLen, '#').split(''))
 	}
 
 	right() {
@@ -104,7 +107,7 @@ export class Tape {
 	}
 
 	clear() {
-		this.data = [['#']]
+		this.data = [['#', '#']]
 		this.xPtr = 0
 		this.yPtr = 0
 	}

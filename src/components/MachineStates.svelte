@@ -12,11 +12,11 @@
 	<div class="container mx-auto space-y-8">
 		<BoxedLabel {label}>
 			<div
-				class="overflow-auto py-3 h-28 scrollbar-thin scrollbar-thumb-[#ffffff30] scrollbar-track-transparent grid place-items-center"
+				class="overflow-auto py-3 h-32 scroll-thin grid place-items-center"
 			>
 					<Tape
 						tape={$machine.inputMemory}
-						class="text-lg md:text-3xl font-mono flex [&_:first-child]:ml-auto [&_:last-child]:mr-auto"
+						class="text-lg md:text-3xl font-mono flex [&_:first-child]:ml-auto [&_:last-child]:mr-auto group"
 					/>
 			</div>
 		</BoxedLabel>

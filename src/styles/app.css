@@ -10,3 +10,11 @@ body {
 	@apply fill-gray-500 dark:hover:fill-gray-400 dark:active:fill-gray-300 transition-colors
 		 hover:fill-gray-600 active:fill-gray-700;
 }
+
+.scroll {
+	@apply scrollbar scrollbar-thumb-[#ffffff30] scrollbar-track-transparent
+}
+
+.scroll-thin {
+	@apply scrollbar-thin scrollbar-thumb-[#ffffff30] scrollbar-track-transparent
+}

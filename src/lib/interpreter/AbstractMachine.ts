@@ -69,7 +69,7 @@ export class AbstractMachine {
 		for (const m of this._storage.values()) {
 			m.clear()
 		}
-		this.inputMemory.set(`#${input}#`)
+		this.inputMemory.set(input)
 	}
 
 	step() {

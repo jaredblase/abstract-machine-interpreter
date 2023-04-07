@@ -81,11 +81,12 @@
 <form on:submit|preventDefault={onSubmit}>
 	<div>
 		<label for="input" class="block">Initial input</label>
-		<input
-			type="text"
+		<textarea
 			id="input"
-			class="text-gray-900 rounded-md py-1 w-full placeholder:text-gray-400 placeholder:italic"
+			class="text-gray-900 rounded-md py-1 w-full placeholder:text-gray-400 placeholder:italic resize-none
+			scrollbar-thin scrollbar-thumb-[#00000030] scrollbar-track-transparent"
 			placeholder="Input value..."
+			rows="3"
 			bind:value
 		/>
 	</div>
